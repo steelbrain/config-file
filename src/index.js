@@ -1,5 +1,6 @@
 /* @flow */
 
+import FS from 'fs'
 import * as Helpers from './helpers'
 import type { Options } from './types'
 
@@ -12,8 +13,17 @@ class ConfigFile {
     this.filePath = filePath
     this.defaultConfig = defaultConfig
 
-    // To verify file doesn't have syntax errors
-    Helpers.readFile(filePath, this.defaultConfig)
+    try {
+      // To verify file doesn't have syntax errors
+      Helpers.readFile(filePath, this.defaultConfig)
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        if (this.options.failIfNonExistent) {
+          throw new Error(`Config file '${filePath}' does not exist`)
+        }
+        FS.writeFileSync(filePath, '{}')
+      } else throw error
+    }
   }
   get(key: string, strict: boolean = false): any {
     const contents = Helpers.readFile(this.filePath, this.defaultConfig)
