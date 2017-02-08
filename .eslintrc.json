@@ -1,6 +1,7 @@
 {
   "extends": "steelbrain",
   "rules": {
+    "no-self-compare": "off",
     "import/prefer-default-export": "off"
   }
 }
