@@ -19,6 +19,8 @@ export default class ConfigFile {
 }}
 ```
 
+## Example Usage
+
 ```js
 const Path = require('path')
 const ConfigFile = require('sb-config-file')
