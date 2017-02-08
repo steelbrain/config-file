@@ -33,6 +33,9 @@
     "babel-preset-steelbrain": "^4.0.2",
     "eslint-config-steelbrain": "^1.0.4",
     "flow-bin": "^0.32.0",
-    "rimraf": "^2.5.4"
+    "jasmine-fix": "^1.0.1",
+    "rimraf": "^2.5.4",
+    "sb-copy": "^1.0.1",
+    "sb-fs": "^1.1.1"
   }
 }

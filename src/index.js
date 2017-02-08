@@ -19,16 +19,23 @@ class ConfigFile {
     } catch (error) {
       if (error.code === 'ENOENT') {
         if (this.options.failIfNonExistent) {
-          throw new Error(`Config file '${filePath}' does not exist`)
+          const newError = new Error(`Config file '${filePath}' does not exist`)
+          // $FlowIgnore: Custom prop
+          newError.code = 'CONFIG_INVALID_ACCESS'
+          throw newError
         }
-        FS.writeFileSync(filePath, '{}')
+        FS.writeFileSync(filePath, '{}\n')
       } else throw error
     }
   }
-  get(key: string, strict: boolean = false): any {
+  get(key: string = '', defaultValue: any = null, strict: boolean = false): any {
     const contents = Helpers.readFile(this.filePath, this.defaultConfig)
     try {
-      return Helpers.deepGet(contents, key.split('.'))
+      const value = Helpers.deepGet(contents, Helpers.split(key))
+      if (typeof value === 'undefined') {
+        return defaultValue
+      }
+      return value
     } catch (error) {
       if (error.code !== 'CONFIG_INVALID_ACCESS' || strict) {
         throw error
@@ -39,11 +46,11 @@ class ConfigFile {
   set(key: string, value: any, strict: boolean = false) {
     const contents = Helpers.readFile(this.filePath, this.defaultConfig)
     const { childKey, parentKey } = Helpers.getKeys(key)
-    const parent = Helpers.deepNormalize(contents, parentKey.split('.'), strict)
+    const parent = Helpers.deepNormalize(contents, Helpers.split(parentKey), strict)
     if (Array.isArray(parent)) {
       const index = parseInt(childKey, 10)
-      if (index - 1 > parent.length) {
-        parent.length = index - 1
+      if (index !== index) {
+        throw new Error(`Invalid write of non-numeric key on Array at '${key}'`)
       }
       parent[index] = value
     } else {
@@ -53,7 +60,7 @@ class ConfigFile {
   }
   append(key: string, value: any, strict: boolean = false) {
     const contents = Helpers.readFile(this.filePath, this.defaultConfig)
-    const parent = Helpers.deepNormalize(contents, key.split('.'), strict)
+    const parent = Helpers.deepNormalize(contents, Helpers.split(key), strict)
     if (!Array.isArray(parent)) {
       const error = new Error(`Invalid write of '${key}' when it's not an Array`)
       // $FlowIgnore: Custom prop

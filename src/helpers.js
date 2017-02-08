@@ -14,8 +14,12 @@ export function fillOptions(given: Object): Options {
   return options
 }
 
+export function split(path: string): Array<string> {
+  return path.split('.').filter(i => i)
+}
+
 export function getKeys(path: string): { childKey: string, parentKey: string } {
-  const chunks = path.split('.')
+  const chunks = split(path)
   const childKey = chunks.pop()
   const parentKey = chunks.join('.')
   return { childKey, parentKey }
@@ -40,7 +44,7 @@ export function deepGet(object: Object, chunks: Array<string>, position: number 
   }
 
   const current = object[chunks[position]]
-  if (chunks.length === current + 1) {
+  if (chunks.length === position + 1) {
     return current
   }
   if (typeof current !== 'object' || !current) {
@@ -77,5 +81,5 @@ export function deepNormalize(object: Object, chunks: Array<string>, strict: boo
   if (chunks.length === position + 1) {
     return current
   }
-  return deepNormalize(object, chunks, strict, position + 1)
+  return deepNormalize(current, chunks, strict, position + 1)
 }
