@@ -1,6 +1,5 @@
 /* @flow */
 
-import FS from 'fs'
 import * as Helpers from './helpers'
 import type { Options } from './types'
 
@@ -24,7 +23,7 @@ class ConfigFile {
           newError.code = 'CONFIG_INVALID_ACCESS'
           throw newError
         }
-        FS.writeFileSync(filePath, '{}\n')
+        Helpers.writeFile(filePath, defaultConfig)
       } else throw error
     }
   }
