@@ -57,6 +57,13 @@ class ConfigFile {
     }
     Helpers.writeFile(this.filePath, contents)
   }
+  delete(key: string, strict: boolean = false) {
+    const contents = Helpers.readFile(this.filePath, this.defaultConfig)
+    const { childKey, parentKey } = Helpers.getKeys(key)
+    const parent = Helpers.deepNormalize(contents, Helpers.split(parentKey), strict)
+    delete parent[childKey]
+    Helpers.writeFile(this.filePath, contents)
+  }
   append(key: string, value: any, strict: boolean = false) {
     const contents = Helpers.readFile(this.filePath, this.defaultConfig)
     const parent = Helpers.deepNormalize(contents, Helpers.split(key), strict)

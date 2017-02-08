@@ -96,4 +96,15 @@ describe('ConfigFile', function() {
     configFile.append('array', true)
     expect(configFile.get('array')).toEqual(['1', 2, '5', true])
   })
+
+  it('deletes stuff', function() {
+    const configFile = new ConfigFile(configPath)
+    configFile.delete('array')
+    expect(configFile.get('array')).toEqual(null)
+    expect(configFile.get('object.deep.ha')).toEqual(1)
+    configFile.delete('object.deep.ha')
+    expect(configFile.get('object.deep')).toEqual({
+      prop: 'yes',
+    })
+  })
 })
