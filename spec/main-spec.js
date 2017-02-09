@@ -11,6 +11,7 @@ describe('ConfigFile', function() {
   const fixtures = Path.join(__dirname, 'fixtures')
   const directory = Path.join(fixtures, 'ignored')
   const nonExistent = Path.join(directory, 'file-1')
+  const tempPath = Path.join(directory, 'temp-1')
   const configPath = Path.join(directory, 'config.json')
 
   beforeEach(async function() {
@@ -21,18 +22,20 @@ describe('ConfigFile', function() {
     await FS.rimraf(Path.join(fixtures, 'ignored'))
   })
 
+  function getConfigFile(...args: Array<any>) {
+    return new ConfigFile(...args)
+  }
+
   it('creates empty if file is non existent', async function() {
     expect(await FS.exists(nonExistent)).toBe(false)
-    // eslint-disable-next-line no-new
-    new ConfigFile(nonExistent)
+    getConfigFile(nonExistent)
     expect(await FS.readFile(nonExistent, 'utf8')).toBe('{}\n')
   })
   it('fails if file is not present and config is set', async function() {
     const testFile = Path.join(directory, 'test-1')
     expect(await FS.exists(testFile)).toBe(false)
     try {
-      // eslint-disable-next-line no-new
-      new ConfigFile(testFile, {}, { failIfNonExistent: true })
+      getConfigFile(testFile, {}, { failIfNonExistent: true })
       expect(false).toBe(true)
     } catch (error) {
       expect(error.code).toBe('CONFIG_INVALID_ACCESS')
@@ -106,5 +109,16 @@ describe('ConfigFile', function() {
     expect(configFile.get('object.deep')).toEqual({
       prop: 'yes',
     })
+  })
+
+  it('pretty prints by default', async function() {
+    getConfigFile(tempPath, { some: 'thing' })
+    expect(await FS.readFile(tempPath, 'utf8')).toBe('{\n  "some": "thing"\n}\n')
+  })
+  it('can disable pretty printing if we tell it to', async function() {
+    getConfigFile(tempPath, { some: 'thing' }, {
+      noPrettyPrint: true,
+    })
+    expect(await FS.readFile(tempPath, 'utf8')).toBe('{"some":"thing"}\n')
   })
 })
