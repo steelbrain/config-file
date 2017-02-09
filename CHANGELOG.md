@@ -1,3 +1,7 @@
+### 1.2.1
+
+- Fix an unknown deployment issue
+
 ### 1.2.0
 
 - Add `noPrettyPrint` option
