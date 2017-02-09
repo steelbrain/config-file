@@ -1,3 +1,7 @@
+### 1.2.0
+
+- Add `noPrettyPrint` option
+
 ### 1.1.0
 
 - Add `.delete()` method

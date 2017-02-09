@@ -23,7 +23,7 @@ class ConfigFile {
           newError.code = 'CONFIG_INVALID_ACCESS'
           throw newError
         }
-        Helpers.writeFile(filePath, defaultConfig)
+        Helpers.writeFile(filePath, defaultConfig, this.options)
       } else throw error
     }
   }
@@ -55,14 +55,14 @@ class ConfigFile {
     } else {
       parent[childKey] = value
     }
-    Helpers.writeFile(this.filePath, contents)
+    Helpers.writeFile(this.filePath, contents, this.options)
   }
   delete(key: string, strict: boolean = false) {
     const contents = Helpers.readFile(this.filePath, this.defaultConfig)
     const { childKey, parentKey } = Helpers.getKeys(key)
     const parent = Helpers.deepNormalize(contents, Helpers.split(parentKey), strict)
     delete parent[childKey]
-    Helpers.writeFile(this.filePath, contents)
+    Helpers.writeFile(this.filePath, contents, this.options)
   }
   append(key: string, value: any, strict: boolean = false) {
     const contents = Helpers.readFile(this.filePath, this.defaultConfig)
@@ -74,7 +74,7 @@ class ConfigFile {
       throw error
     }
     parent.push(value)
-    Helpers.writeFile(this.filePath, contents)
+    Helpers.writeFile(this.filePath, contents, this.options)
   }
 }
 

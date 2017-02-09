@@ -9,6 +9,7 @@ import type { Options } from './types'
 export function fillOptions(given: Object): Options {
   const options = {}
 
+  options.noPrettyPrint = !!given.noPrettyPrint
   options.failIfNonExistent = !!given.failIfNonExistent
 
   return options
@@ -34,8 +35,9 @@ export function readFile(filePath: string, defaultConfig: Object): Object {
   }
 }
 
-export function writeFile(filePath: string, contents: Object): void {
-  atmoicWrite.sync(filePath, JSON.stringify(contents) + '\n')
+export function writeFile(filePath: string, contents: Object, options: Options): void {
+  const encoded = JSON.stringify(contents, null, options.noPrettyPrint ? 0 : 2)
+  atmoicWrite.sync(filePath, encoded + '\n')
 }
 
 export function deepGet(object: Object, chunks: Array<string>, position: number = 0): any {
