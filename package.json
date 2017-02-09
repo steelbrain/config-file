@@ -1,6 +1,6 @@
 {
   "name": "sb-config-file",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Manage JSON configuration files without race conditions",
   "main": "lib/index.js",
   "scripts": {
