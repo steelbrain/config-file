@@ -7,7 +7,8 @@ sb-config-file is a Node.js module to help you manage your JSON configuration fi
 
 ```js
 type Options = {
-  failIfNonExistent: boolean = false
+  noPrettyPrint: boolean = false,
+  failIfNonExistent: boolean = false,
 }
 
 export default class ConfigFile {
