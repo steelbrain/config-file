@@ -1,3 +1,7 @@
+### 2.0.0
+
+- API Breaking: Remove supports for JSON comments during parse because it's known to break some really big JSON files
+
 ### 1.2.1
 
 - Fix an unknown deployment issue

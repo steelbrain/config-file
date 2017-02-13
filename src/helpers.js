@@ -3,7 +3,6 @@
 import FS from 'fs'
 import stripBom from 'strip-bom'
 import atmoicWrite from 'write-file-atomic'
-import stripComments from 'strip-json-comments'
 import type { Options } from './types'
 
 export function fillOptions(given: Object): Options {
@@ -27,7 +26,7 @@ export function getKeys(path: string): { childKey: string, parentKey: string } {
 }
 
 export function readFile(filePath: string, defaultConfig: Object): Object {
-  const contents = stripComments(stripBom(FS.readFileSync(filePath, 'utf8')))
+  const contents = stripBom(FS.readFileSync(filePath, 'utf8'))
   try {
     return Object.assign(defaultConfig, JSON.parse(contents))
   } catch (_) {
