@@ -3,7 +3,7 @@
 import FS from 'sb-fs'
 import Path from 'path'
 import copy from 'sb-copy'
-import { fit, it, beforeEach, afterEach } from 'jasmine-fix'
+import { it, beforeEach, afterEach } from 'jasmine-fix'
 
 import ConfigFile from '../src'
 
