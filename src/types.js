@@ -1,6 +1,7 @@
 /* @flow */
 
-export type Options = {
-  noPrettyPrint: boolean,
-  failIfNonExistent: boolean,
+export type Config = {
+  prettyPrint: boolean,
+  atomicWrites: boolean,
+  createIfNonExistent: boolean,
 }
