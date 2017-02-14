@@ -42,7 +42,7 @@ class ConfigFile {
   setSync(key: string, value: any, strict: boolean = false) {
     Helpers.writeFileSync(this.filePath, this._set(key, value, strict, Helpers.readFileSync(this.filePath, this.initialValue)), this.config)
   }
-  async _set(key: string, value: any, strict: boolean = false, contents: Object) {
+  _set(key: string, value: any, strict: boolean = false, contents: Object) {
     const { childKey, parentKey } = ObjectPath.getKeys(key)
     const parent = ObjectPath.deepNormalize(contents, ObjectPath.split(parentKey), strict)
     if (Array.isArray(parent)) {
@@ -62,7 +62,7 @@ class ConfigFile {
   deleteSync(key: string, strict: boolean = false) {
     Helpers.writeFileSync(this.filePath, this._delete(key, strict, Helpers.readFileSync(this.filePath, this.initialValue)), this.config)
   }
-  async _delete(key: string, strict: boolean = false, contents: Object) {
+  _delete(key: string, strict: boolean = false, contents: Object) {
     const { childKey, parentKey } = ObjectPath.getKeys(key)
     const parent = ObjectPath.deepNormalize(contents, ObjectPath.split(parentKey), strict)
     delete parent[childKey]
@@ -74,7 +74,7 @@ class ConfigFile {
   appendSync(key: string, value: any, strict: boolean = false) {
     Helpers.writeFileSync(this.filePath, this._append(key, value, strict, Helpers.readFileSync(this.filePath, this.initialValue)), this.config)
   }
-  async _append(key: string, value: any, strict: boolean = false, contents: Object) {
+  _append(key: string, value: any, strict: boolean = false, contents: Object) {
     const parent = ObjectPath.deepNormalize(contents, ObjectPath.split(key), strict)
     if (!Array.isArray(parent)) {
       const error = new Error(`Invalid write of '${key}' when it's not an Array`)

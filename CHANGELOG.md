@@ -1,3 +1,11 @@
+### 3.0.1
+
+- Fix some critical typos
+
+### 3.0.0
+
+- Make functions async by default and add their sync eqv
+
 ### 2.0.0
 
 - API Breaking: Remove supports for JSON comments during parse because it's known to break some really big JSON files
