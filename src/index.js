@@ -1,51 +1,50 @@
 /* @flow */
 
+import FS from 'sb-fs'
 import * as Helpers from './helpers'
-import type { Options } from './types'
+import * as ObjectPath from './object-path'
+import type { Config } from './types'
 
+const PRIVATE_VAR = {}
 class ConfigFile {
-  options: Options;
+  config: Config;
   filePath: string;
-  defaultConfig: Object;
-  constructor(filePath: string, defaultConfig: Object = {}, options: Object = {}) {
-    this.options = Helpers.fillOptions(options)
-    this.filePath = filePath
-    this.defaultConfig = defaultConfig
-
-    try {
-      // To verify file doesn't have syntax errors
-      Helpers.readFile(filePath, this.defaultConfig)
-    } catch (error) {
-      if (error.code === 'ENOENT') {
-        if (this.options.failIfNonExistent) {
-          const newError = new Error(`Config file '${filePath}' does not exist`)
-          // $FlowIgnore: Custom prop
-          newError.code = 'CONFIG_INVALID_ACCESS'
-          throw newError
-        }
-        Helpers.writeFile(filePath, defaultConfig, this.options)
-      } else throw error
+  initialValue: Object;
+  constructor(privateVar: Object, filePath: string, initialValue: Object, config: Config) {
+    if (privateVar !== PRIVATE_VAR) {
+      throw new Error('Invalid invocation of new ConfigFile() use ConfigFile.get() instead')
     }
+
+    this.config = config
+    this.filePath = filePath
+    this.initialValue = initialValue
   }
-  get(key: string = '', defaultValue: any = null, strict: boolean = false): any {
-    const contents = Helpers.readFile(this.filePath, this.defaultConfig)
+  async get(key: string = '', defaultValue: any = null): any {
+    return this._get(key, defaultValue, await Helpers.readFile(this.filePath, this.initialValue))
+  }
+  getSync(key: string = '', defaultValue: any = null): any {
+    return this._get(key, defaultValue, Helpers.readFileSync(this.filePath, this.initialValue))
+  }
+  _get(key: string, defaultValue: any, contents: Object): any {
     try {
-      const value = Helpers.deepGet(contents, Helpers.split(key))
+      const value = ObjectPath.deepGet(contents, ObjectPath.split(key))
       if (typeof value === 'undefined') {
         return defaultValue
       }
       return value
     } catch (error) {
-      if (error.code !== 'CONFIG_INVALID_ACCESS' || strict) {
-        throw error
-      }
       return null
     }
   }
-  set(key: string, value: any, strict: boolean = false) {
-    const contents = Helpers.readFile(this.filePath, this.defaultConfig)
-    const { childKey, parentKey } = Helpers.getKeys(key)
-    const parent = Helpers.deepNormalize(contents, Helpers.split(parentKey), strict)
+  async set(key: string, value: any, strict: boolean = false) {
+    await Helpers.writeFile(this.filePath, this._set(key, value, strict, await Helpers.readFile(this.filePath, this.initialValue)), this.config)
+  }
+  setSync(key: string, value: any, strict: boolean = false) {
+    Helpers.writeFileSync(this.filePath, this._set(key, value, strict, Helpers.readFileSync(this.filePath, this.initialValue)), this.config)
+  }
+  async _set(key: string, value: any, strict: boolean = false, contents: Object) {
+    const { childKey, parentKey } = ObjectPath.getKeys(key)
+    const parent = ObjectPath.deepNormalize(contents, ObjectPath.split(parentKey), strict)
     if (Array.isArray(parent)) {
       const index = parseInt(childKey, 10)
       if (index !== index) {
@@ -55,18 +54,28 @@ class ConfigFile {
     } else {
       parent[childKey] = value
     }
-    Helpers.writeFile(this.filePath, contents, this.options)
+    return contents
   }
-  delete(key: string, strict: boolean = false) {
-    const contents = Helpers.readFile(this.filePath, this.defaultConfig)
-    const { childKey, parentKey } = Helpers.getKeys(key)
-    const parent = Helpers.deepNormalize(contents, Helpers.split(parentKey), strict)
+  async delete(key: string, strict: boolean = false) {
+    await Helpers.writeFile(this.filePath, this._delete(key, strict, await Helpers.readFile(this.filePath, this.initialValue)), this.config)
+  }
+  deleteSync(key: string, strict: boolean = false) {
+    Helpers.writeFileSync(this.filePath, this._delete(key, strict, Helpers.readFileSync(this.filePath, this.initialValue)), this.config)
+  }
+  async _delete(key: string, strict: boolean = false, contents: Object) {
+    const { childKey, parentKey } = ObjectPath.getKeys(key)
+    const parent = ObjectPath.deepNormalize(contents, ObjectPath.split(parentKey), strict)
     delete parent[childKey]
-    Helpers.writeFile(this.filePath, contents, this.options)
+    return contents
   }
-  append(key: string, value: any, strict: boolean = false) {
-    const contents = Helpers.readFile(this.filePath, this.defaultConfig)
-    const parent = Helpers.deepNormalize(contents, Helpers.split(key), strict)
+  async append(key: string, value: any, strict: boolean = false) {
+    await Helpers.writeFile(this.filePath, this._append(key, value, strict, await Helpers.readFile(this.filePath, this.initialValue)), this.config)
+  }
+  appendSync(key: string, value: any, strict: boolean = false) {
+    Helpers.writeFileSync(this.filePath, this._append(key, value, strict, Helpers.readFileSync(this.filePath, this.initialValue)), this.config)
+  }
+  async _append(key: string, value: any, strict: boolean = false, contents: Object) {
+    const parent = ObjectPath.deepNormalize(contents, ObjectPath.split(key), strict)
     if (!Array.isArray(parent)) {
       const error = new Error(`Invalid write of '${key}' when it's not an Array`)
       // $FlowIgnore: Custom prop
@@ -74,7 +83,16 @@ class ConfigFile {
       throw error
     }
     parent.push(value)
-    Helpers.writeFile(this.filePath, contents, this.options)
+    return contents
+  }
+  static async get(filePath: string, givenInitialValue: ?Object = {}, givenConfig: ?Object = {}) {
+    const config = Helpers.fillConfig(givenConfig || {})
+    const initialValue = givenInitialValue || {}
+
+    if (!await FS.exists(filePath) && config.createIfNonExistent) {
+      await Helpers.writeFile(filePath, initialValue, config)
+    }
+    return new ConfigFile(PRIVATE_VAR, filePath, initialValue, config)
   }
 }
 

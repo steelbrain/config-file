@@ -1,86 +1,60 @@
 /* @flow */
 
-import FS from 'fs'
+import FS from 'sb-fs'
 import stripBom from 'strip-bom'
-import atmoicWrite from 'write-file-atomic'
-import type { Options } from './types'
+import atomicWrite from 'write-file-atomic'
+import type { Config } from './types'
 
-export function fillOptions(given: Object): Options {
-  const options = {}
+export function fillConfig(given: Object): Config {
+  const config = {}
 
-  options.noPrettyPrint = !!given.noPrettyPrint
-  options.failIfNonExistent = !!given.failIfNonExistent
+  if (typeof given.prettyPrint !== 'undefined') {
+    config.prettyPrint = !!given.prettyPrint
+  } else config.prettyPrint = true
+  if (typeof given.atomicWrites !== 'undefined') {
+    config.atomicWrites = !!given.atomicWrites
+  } else config.atomicWrites = true
+  config.createIfNonExistent = !!given.createIfNonExistent
 
-  return options
+  return config
 }
 
-export function split(path: string): Array<string> {
-  return path.split('.').filter(i => i)
+export function writeFile(filePath: string, contents: Object, config: Config): Promise<void> {
+  const stringified = JSON.stringify(contents, null, config.prettyPrint ? 2 : 0) + '\n'
+  if (config.atomic) {
+    return new Promise(function(resolve, reject) {
+      atomicWrite(filePath, stringified, function(err) {
+        if (err) reject()
+        else resolve()
+      })
+    })
+  }
+  return FS.writeFile(filePath, stringified)
 }
 
-export function getKeys(path: string): { childKey: string, parentKey: string } {
-  const chunks = split(path)
-  const childKey = chunks.pop()
-  const parentKey = chunks.join('.')
-  return { childKey, parentKey }
+export function writeFileSync(filePath: string, contents: Object, config: Config): void {
+  const stringified = JSON.stringify(contents, null, config.prettyPrint ? 2 : 0) + '\n'
+  if (config.atomic) {
+    atomicWrite.sync(filePath, stringified)
+  } else {
+    FS.writeFileSync(filePath, stringified)
+  }
 }
 
-export function readFile(filePath: string, defaultConfig: Object): Object {
-  const contents = stripBom(FS.readFileSync(filePath, 'utf8'))
+export async function readFile(filePath: string, initialValue: Object): Promise<Object> {
+  const contents = stripBom(await FS.readFile(filePath, 'utf8'))
   try {
-    return Object.assign(defaultConfig, JSON.parse(contents))
+    return Object.assign(initialValue, JSON.parse(contents))
   } catch (_) {
     throw new Error(`Invalid JSON found at '${filePath}'`)
   }
 }
 
-export function writeFile(filePath: string, contents: Object, options: Options): void {
-  const encoded = JSON.stringify(contents, null, options.noPrettyPrint ? 0 : 2)
-  atmoicWrite.sync(filePath, encoded + '\n')
-}
-
-export function deepGet(object: Object, chunks: Array<string>, position: number = 0): any {
-  if (!chunks.length) {
-    return object
+export function readFileSync(filePath: string, initialValue: Object): Object {
+  const contents = stripBom(FS.readFileSync(filePath, 'utf8'))
+  try {
+    return Object.assign(initialValue, JSON.parse(contents))
+  } catch (_) {
+    throw new Error(`Invalid JSON found at '${filePath}'`)
   }
-
-  const current = object[chunks[position]]
-  if (chunks.length === position + 1) {
-    return current
-  }
-  if (typeof current !== 'object' || !current) {
-    const error = new Error(`Invalid access of '${chunks.join('.')}' when '${chunks.slice(0, position).join('.')}' is ${typeof current}`)
-    // $FlowIgnore: Custom prop
-    error.code = 'CONFIG_INVALID_ACCESS'
-    throw error
-  }
-  return deepGet(current, chunks, position + 1)
-}
-
-export function deepNormalize(object: Object, chunks: Array<string>, strict: boolean, position: number = 0): any {
-  if (!chunks.length) {
-    return object
-  }
-
-  let current = object[chunks[position]]
-
-  if (typeof current === 'undefined') {
-    // eslint-disable-next-line no-param-reassign
-    current = object[chunks[position]] = {}
-  }
-  if (typeof current !== 'object' || !current) {
-    if (strict) {
-      const error = new Error(`Invalid access of '${chunks.join('.')}' when '${chunks.slice(0, position).join('.')}' is ${typeof current}`)
-      // $FlowIgnore: Custom prop
-      error.code = 'CONFIG_INVALID_ACCESS'
-      throw error
-    } else {
-      // eslint-disable-next-line no-param-reassign
-      current = object[chunks[position]] = {}
-    }
-  }
-  if (chunks.length === position + 1) {
-    return current
-  }
-  return deepNormalize(current, chunks, strict, position + 1)
 }
