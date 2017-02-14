@@ -82,7 +82,7 @@ describe('ConfigFile', function() {
       // add item at specific index in array
       expect(configFile.getSync('new.deep.array.10')).toEqual(null)
       configFile.setSync('new.deep.array.10', 50)
-      expect(configFile.getSync('new.deep.array')).toEqual([1, 3, 5, undefined, undefined, undefined, undefined, undefined, undefined, undefined, 50])
+      expect(configFile.getSync('new.deep.array')).toEqual([1, 3, 5, null, null, null, null, null, null, null, 50])
     })
 
     it('appens arrays', async function() {
@@ -164,7 +164,7 @@ describe('ConfigFile', function() {
       // add item at specific index in array
       expect(await configFile.get('new.deep.array.10')).toEqual(null)
       await configFile.set('new.deep.array.10', 50)
-      expect(await configFile.get('new.deep.array')).toEqual([1, 3, 5, undefined, undefined, undefined, undefined, undefined, undefined, undefined, 50])
+      expect(await configFile.get('new.deep.array')).toEqual([1, 3, 5, null, null, null, null, null, null, null, 50])
     })
 
     it('appens arrays', async function() {
