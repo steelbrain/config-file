@@ -20,10 +20,10 @@ class ConfigFile {
     this.initialValue = initialValue
   }
   async get(key: string = '', defaultValue: any = null): any {
-    return this._get(key, defaultValue, await Helpers.readFile(this.filePath, this.initialValue))
+    return this._get(key, defaultValue, await Helpers.readFile(this.filePath, this.initialValue, this.config))
   }
   getSync(key: string = '', defaultValue: any = null): any {
-    return this._get(key, defaultValue, Helpers.readFileSync(this.filePath, this.initialValue))
+    return this._get(key, defaultValue, Helpers.readFileSync(this.filePath, this.initialValue, this.config))
   }
   _get(key: string, defaultValue: any, contents: Object): any {
     try {
@@ -37,10 +37,10 @@ class ConfigFile {
     }
   }
   async set(key: string, value: any, strict: boolean = false) {
-    await Helpers.writeFile(this.filePath, this._set(key, value, strict, await Helpers.readFile(this.filePath, this.initialValue)), this.config)
+    await Helpers.writeFile(this.filePath, this._set(key, value, strict, await Helpers.readFile(this.filePath, this.initialValue, this.config)), this.config)
   }
   setSync(key: string, value: any, strict: boolean = false) {
-    Helpers.writeFileSync(this.filePath, this._set(key, value, strict, Helpers.readFileSync(this.filePath, this.initialValue)), this.config)
+    Helpers.writeFileSync(this.filePath, this._set(key, value, strict, Helpers.readFileSync(this.filePath, this.initialValue, this.config)), this.config)
   }
   _set(key: string, value: any, strict: boolean = false, contents: Object) {
     const { childKey, parentKey } = ObjectPath.getKeys(key)
@@ -57,10 +57,10 @@ class ConfigFile {
     return contents
   }
   async delete(key: string, strict: boolean = false) {
-    await Helpers.writeFile(this.filePath, this._delete(key, strict, await Helpers.readFile(this.filePath, this.initialValue)), this.config)
+    await Helpers.writeFile(this.filePath, this._delete(key, strict, await Helpers.readFile(this.filePath, this.initialValue, this.config)), this.config)
   }
   deleteSync(key: string, strict: boolean = false) {
-    Helpers.writeFileSync(this.filePath, this._delete(key, strict, Helpers.readFileSync(this.filePath, this.initialValue)), this.config)
+    Helpers.writeFileSync(this.filePath, this._delete(key, strict, Helpers.readFileSync(this.filePath, this.initialValue, this.config)), this.config)
   }
   _delete(key: string, strict: boolean = false, contents: Object) {
     const { childKey, parentKey } = ObjectPath.getKeys(key)
@@ -69,10 +69,10 @@ class ConfigFile {
     return contents
   }
   async append(key: string, value: any, strict: boolean = false) {
-    await Helpers.writeFile(this.filePath, this._append(key, value, strict, await Helpers.readFile(this.filePath, this.initialValue)), this.config)
+    await Helpers.writeFile(this.filePath, this._append(key, value, strict, await Helpers.readFile(this.filePath, this.initialValue, this.config)), this.config)
   }
   appendSync(key: string, value: any, strict: boolean = false) {
-    Helpers.writeFileSync(this.filePath, this._append(key, value, strict, Helpers.readFileSync(this.filePath, this.initialValue)), this.config)
+    Helpers.writeFileSync(this.filePath, this._append(key, value, strict, Helpers.readFileSync(this.filePath, this.initialValue, this.config)), this.config)
   }
   _append(key: string, value: any, strict: boolean = false, contents: Object) {
     const parent = ObjectPath.deepNormalize(contents, ObjectPath.split(key), strict)

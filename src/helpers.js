@@ -41,19 +41,35 @@ export function writeFileSync(filePath: string, contents: Object, config: Config
   }
 }
 
-export async function readFile(filePath: string, initialValue: Object): Promise<Object> {
-  const contents = stripBom(await FS.readFile(filePath, 'utf8'))
+export async function readFile(filePath: string, initialValue: Object, config: Config): Promise<Object> {
+  let contents
   try {
-    return Object.assign(initialValue, JSON.parse(contents))
+    contents = stripBom(await FS.readFile(filePath, 'utf8'))
+  } catch (error) {
+    if (error.code === 'ENOENT' && !config.createIfNonExistent) {
+      return Object.assign({}, initialValue)
+    }
+    throw error
+  }
+  try {
+    return Object.assign({}, initialValue, JSON.parse(contents))
   } catch (_) {
     throw new Error(`Invalid JSON found at '${filePath}'`)
   }
 }
 
-export function readFileSync(filePath: string, initialValue: Object): Object {
-  const contents = stripBom(FS.readFileSync(filePath, 'utf8'))
+export function readFileSync(filePath: string, initialValue: Object, config: Config): Object {
+  let contents
   try {
-    return Object.assign(initialValue, JSON.parse(contents))
+    contents = stripBom(FS.readFileSync(filePath, 'utf8'))
+  } catch (error) {
+    if (error.code === 'ENOENT' && !config.createIfNonExistent) {
+      return Object.assign({}, initialValue)
+    }
+    throw error
+  }
+  try {
+    return Object.assign({}, initialValue, JSON.parse(contents))
   } catch (_) {
     throw new Error(`Invalid JSON found at '${filePath}'`)
   }
