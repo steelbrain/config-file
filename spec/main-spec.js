@@ -11,7 +11,8 @@ describe('ConfigFile', function() {
   const fixtures = Path.join(__dirname, 'fixtures')
   const directory = Path.join(fixtures, 'ignored')
   const nonExistent = Path.join(directory, 'file-1')
-  const tempPath = Path.join(directory, 'temp-1')
+  const tempPath1 = Path.join(directory, 'temp-1')
+  const tempPath2 = Path.join(directory, 'temp-2')
   const configPath = Path.join(directory, 'config.json')
 
   beforeEach(async function() {
@@ -103,15 +104,24 @@ describe('ConfigFile', function() {
     })
 
     it('pretty prints by default', async function() {
-      await getConfigFile(tempPath, { some: 'thing' }, { createIfNonExistent: true })
-      expect(await FS.readFile(tempPath, 'utf8')).toBe('{\n  "some": "thing"\n}\n')
+      await getConfigFile(tempPath1, { some: 'thing' }, { createIfNonExistent: true })
+      expect(await FS.readFile(tempPath1, 'utf8')).toBe('{\n  "some": "thing"\n}\n')
     })
     it('can disable pretty printing if we tell it to', async function() {
-      await getConfigFile(tempPath, { some: 'thing' }, {
+      await getConfigFile(tempPath1, { some: 'thing' }, {
         prettyPrint: false,
         createIfNonExistent: true,
       })
-      expect(await FS.readFile(tempPath, 'utf8')).toBe('{"some":"thing"}\n')
+      expect(await FS.readFile(tempPath1, 'utf8')).toBe('{"some":"thing"}\n')
+    })
+    it('does not throw if file does not exist and createIfNonExistent is false', async function() {
+      const configFile = await getConfigFile(tempPath2, {
+        some: 'wow',
+      }, {
+        createIfNonExistent: false,
+      })
+      expect(await configFile.get()).toEqual({ some: 'wow' })
+      expect(await FS.exists(tempPath2)).toBe(false)
     })
   })
   describe('Async APIs', function() {
@@ -185,15 +195,24 @@ describe('ConfigFile', function() {
     })
 
     it('pretty prints by default', async function() {
-      await getConfigFile(tempPath, { some: 'thing' }, { createIfNonExistent: true })
-      expect(await FS.readFile(tempPath, 'utf8')).toBe('{\n  "some": "thing"\n}\n')
+      await getConfigFile(tempPath1, { some: 'thing' }, { createIfNonExistent: true })
+      expect(await FS.readFile(tempPath1, 'utf8')).toBe('{\n  "some": "thing"\n}\n')
     })
     it('can disable pretty printing if we tell it to', async function() {
-      await getConfigFile(tempPath, { some: 'thing' }, {
+      await getConfigFile(tempPath1, { some: 'thing' }, {
         prettyPrint: false,
         createIfNonExistent: true,
       })
-      expect(await FS.readFile(tempPath, 'utf8')).toBe('{"some":"thing"}\n')
+      expect(await FS.readFile(tempPath1, 'utf8')).toBe('{"some":"thing"}\n')
+    })
+    it('does not throw if file does not exist and createIfNonExistent is false', async function() {
+      const configFile = await getConfigFile(tempPath2, {
+        some: 'wow',
+      }, {
+        createIfNonExistent: false,
+      })
+      expect(configFile.getSync()).toEqual({ some: 'wow' })
+      expect(await FS.exists(tempPath2)).toBe(false)
     })
   })
 })
