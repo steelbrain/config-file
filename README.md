@@ -1,6 +1,8 @@
 sb-config-file
 =========
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/steelbrain/config-file.svg)](https://greenkeeper.io/)
+
 sb-config-file is a Node.js module to help you manage your JSON configuration files without worrying about concurrency issues and double writes
 
 ## API
