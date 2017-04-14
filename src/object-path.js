@@ -37,8 +37,9 @@ export function deepNormalize(object: Object, chunks: Array<string>, strict: boo
   let current = object[chunks[position]]
 
   if (typeof current === 'undefined') {
+    current = {}
     // eslint-disable-next-line no-param-reassign
-    current = object[chunks[position]] = {}
+    object[chunks[position]] = current
   }
   if (typeof current !== 'object' || !current) {
     if (strict) {
@@ -47,8 +48,9 @@ export function deepNormalize(object: Object, chunks: Array<string>, strict: boo
       error.code = 'CONFIG_INVALID_ACCESS'
       throw error
     } else {
+      current = {}
       // eslint-disable-next-line no-param-reassign
-      current = object[chunks[position]] = {}
+      object[chunks[position]] = current
     }
   }
   if (chunks.length === position + 1) {
