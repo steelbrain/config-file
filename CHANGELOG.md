@@ -1,3 +1,7 @@
+### 3.0.3
+
+- Upgrade sb-fs to v3 to remove a lot of unwanted deps, making the package more lightweight
+
 ### 3.0.2
 
 - Fix a bug where reading would throw if a file did not exist and `createIfNonExistent` was set to false
