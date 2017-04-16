@@ -3,9 +3,13 @@
 import FS from 'sb-fs'
 import Path from 'path'
 import copy from 'sb-copy'
+import promisify from 'sb-promisify'
 import { it, beforeEach, afterEach } from 'jasmine-fix'
 
 import ConfigFile from '../src'
+
+const rimraf = promisify(require('rimraf'))
+const mkdirp = promisify(require('mkdirp'))
 
 describe('ConfigFile', function() {
   const fixtures = Path.join(__dirname, 'fixtures')
@@ -16,11 +20,11 @@ describe('ConfigFile', function() {
   const configPath = Path.join(directory, 'config.json')
 
   beforeEach(async function() {
-    await FS.mkdirp(Path.join(fixtures, 'ignored'))
+    await mkdirp(Path.join(fixtures, 'ignored'))
     await copy(Path.join(fixtures, 'files'), Path.join(fixtures, 'ignored'))
   })
   afterEach(async function() {
-    await FS.rimraf(Path.join(fixtures, 'ignored'))
+    await rimraf(Path.join(fixtures, 'ignored'))
   })
 
   function getConfigFile(...args: Array<any>) {

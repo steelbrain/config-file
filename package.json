@@ -34,8 +34,10 @@
     "eslint-config-steelbrain": "^3.0.1",
     "flow-bin": "^0.44.0",
     "jasmine-fix": "^1.0.1",
-    "rimraf": "^2.5.4",
+    "mkdirp": "^0.5.1",
+    "rimraf": "^2.6.1",
     "sb-copy": "^1.0.1",
-    "sb-fs": "^3.0.0"
+    "sb-fs": "^3.0.0",
+    "sb-promisify": "^2.0.1"
   }
 }
