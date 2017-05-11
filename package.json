@@ -33,7 +33,7 @@
     "babel-preset-steelbrain": "^5.0.2",
     "eslint-config-steelbrain": "^3.0.1",
     "flow-bin": "^0.46.0",
-    "jasmine-fix": "^1.0.1",
+    "jasmine-fix": "1.0.1",
     "mkdirp": "^0.5.1",
     "rimraf": "^2.6.1",
     "sb-copy": "^1.0.1",
