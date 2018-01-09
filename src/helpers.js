@@ -14,7 +14,6 @@ export function fillConfig(given: Object): Config {
   if (typeof given.atomicWrites !== 'undefined') {
     config.atomicWrites = !!given.atomicWrites
   } else config.atomicWrites = true
-  config.createIfNonExistent = !!given.createIfNonExistent
 
   return config
 }
@@ -41,12 +40,12 @@ export function writeFileSync(filePath: string, contents: Object, config: Config
   }
 }
 
-export async function readFile(filePath: string, initialValue: Object, config: Config): Promise<Object> {
+export async function readFile(filePath: string, initialValue: Object): Promise<Object> {
   let contents
   try {
     contents = stripBom(await FS.readFile(filePath, 'utf8'))
   } catch (error) {
-    if (error.code === 'ENOENT' && !config.createIfNonExistent) {
+    if (error.code === 'ENOENT') {
       return Object.assign({}, initialValue)
     }
     throw error
@@ -58,12 +57,12 @@ export async function readFile(filePath: string, initialValue: Object, config: C
   }
 }
 
-export function readFileSync(filePath: string, initialValue: Object, config: Config): Object {
+export function readFileSync(filePath: string, initialValue: Object): Object {
   let contents
   try {
     contents = stripBom(FS.readFileSync(filePath, 'utf8'))
   } catch (error) {
-    if (error.code === 'ENOENT' && !config.createIfNonExistent) {
+    if (error.code === 'ENOENT') {
       return Object.assign({}, initialValue)
     }
     throw error
