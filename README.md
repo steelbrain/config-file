@@ -29,9 +29,9 @@ export default class ConfigFile {
 
 ```js
 const Path = require('path')
-const ConfigFile = require('sb-config-file')
+const getConfigFile = require('sb-config-file')
 
-ConfigFile.get(Path.join(__dirname, 'config.json')).then(function(configFile) {
+getConfigFile(Path.join(__dirname, 'config.json')).then(function(configFile) {
   configFile.set('database.host', 'localhost')
   configFile.set('database.user', 'steelbrain')
 
