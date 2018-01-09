@@ -13,7 +13,7 @@ type Options = {
   atomicWrites: boolean = true,
 }
 
-export default class ConfigFile {
+class ConfigFile {
   get(dotSeparatedKey: string, defaultValue = null): Promise<any>
   getSync(dotSeparatedKey: string, defaultValue = null): any
   set(dotSeparatedKey: string, value, strict = false): Promise<void>
@@ -21,8 +21,8 @@ export default class ConfigFile {
   delete(dotSeparatedKey: string, strict = false): Promise<void>
   deleteSync(dotSeparatedKey: string, strict = false): void
 
-  static get(filePath: string, defaultConfig: Object, options: Options): ConfigFile
 }}
+export default function getConfigFile(filePath: string, defaultConfig: Object, options: Options): ConfigFile
 ```
 
 ## Example Usage
