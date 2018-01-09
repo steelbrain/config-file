@@ -1,6 +1,5 @@
 /* @flow */
 
-import FS from 'sb-fs'
 import * as Helpers from './helpers'
 import * as ObjectPath from './object-path'
 import type { Config } from './types'
@@ -9,21 +8,21 @@ const PRIVATE_VAR = {}
 class ConfigFile {
   config: Config;
   filePath: string;
-  initialValue: Object;
-  constructor(privateVar: Object, filePath: string, initialValue: Object, config: Config) {
+  defaultValue: Object;
+  constructor(privateVar: Object, filePath: string, defaultValue: Object, config: Config) {
     if (privateVar !== PRIVATE_VAR) {
       throw new Error('Invalid invocation of new ConfigFile() use ConfigFile.get() instead')
     }
 
     this.config = config
     this.filePath = filePath
-    this.initialValue = initialValue
+    this.defaultValue = defaultValue
   }
   async get(key: string = '', defaultValue: any = null): any {
-    return this._get(key, defaultValue, await Helpers.readFile(this.filePath, this.initialValue))
+    return this._get(key, defaultValue, await Helpers.readFile(this.filePath, this.defaultValue))
   }
   getSync(key: string = '', defaultValue: any = null): any {
-    return this._get(key, defaultValue, Helpers.readFileSync(this.filePath, this.initialValue))
+    return this._get(key, defaultValue, Helpers.readFileSync(this.filePath, this.defaultValue))
   }
   _get(key: string, defaultValue: any, contents: Object): any {
     try {
@@ -37,10 +36,10 @@ class ConfigFile {
     }
   }
   async set(key: string, value: any, strict: boolean = false) {
-    await Helpers.writeFile(this.filePath, this._set(key, value, strict, await Helpers.readFile(this.filePath, this.initialValue)), this.config)
+    await Helpers.writeFile(this.filePath, this._set(key, value, strict, await Helpers.readFile(this.filePath, this.defaultValue)), this.config)
   }
   setSync(key: string, value: any, strict: boolean = false) {
-    Helpers.writeFileSync(this.filePath, this._set(key, value, strict, Helpers.readFileSync(this.filePath, this.initialValue)), this.config)
+    Helpers.writeFileSync(this.filePath, this._set(key, value, strict, Helpers.readFileSync(this.filePath, this.defaultValue)), this.config)
   }
   _set(key: string, value: any, strict: boolean = false, contents: Object) {
     const { childKey, parentKey } = ObjectPath.getKeys(key)
@@ -57,10 +56,10 @@ class ConfigFile {
     return contents
   }
   async delete(key: string, strict: boolean = false) {
-    await Helpers.writeFile(this.filePath, this._delete(key, strict, await Helpers.readFile(this.filePath, this.initialValue)), this.config)
+    await Helpers.writeFile(this.filePath, this._delete(key, strict, await Helpers.readFile(this.filePath, this.defaultValue)), this.config)
   }
   deleteSync(key: string, strict: boolean = false) {
-    Helpers.writeFileSync(this.filePath, this._delete(key, strict, Helpers.readFileSync(this.filePath, this.initialValue)), this.config)
+    Helpers.writeFileSync(this.filePath, this._delete(key, strict, Helpers.readFileSync(this.filePath, this.defaultValue)), this.config)
   }
   _delete(key: string, strict: boolean = false, contents: Object) {
     const { childKey, parentKey } = ObjectPath.getKeys(key)
@@ -69,10 +68,10 @@ class ConfigFile {
     return contents
   }
   async append(key: string, value: any, strict: boolean = false) {
-    await Helpers.writeFile(this.filePath, this._append(key, value, strict, await Helpers.readFile(this.filePath, this.initialValue)), this.config)
+    await Helpers.writeFile(this.filePath, this._append(key, value, strict, await Helpers.readFile(this.filePath, this.defaultValue)), this.config)
   }
   appendSync(key: string, value: any, strict: boolean = false) {
-    Helpers.writeFileSync(this.filePath, this._append(key, value, strict, Helpers.readFileSync(this.filePath, this.initialValue)), this.config)
+    Helpers.writeFileSync(this.filePath, this._append(key, value, strict, Helpers.readFileSync(this.filePath, this.defaultValue)), this.config)
   }
   _append(key: string, value: any, strict: boolean = false, contents: Object) {
     const parent = ObjectPath.deepNormalize(contents, ObjectPath.split(key), strict)
@@ -85,14 +84,10 @@ class ConfigFile {
     parent.push(value)
     return contents
   }
-  static async get(filePath: string, givenInitialValue: ?Object = {}, givenConfig: ?Object = {}) {
+  static async get(filePath: string, defaultValue: ?Object = null, givenConfig: ?Object = null) {
     const config = Helpers.fillConfig(givenConfig || {})
-    const initialValue = givenInitialValue || {}
 
-    if (!await FS.exists(filePath) && config.createIfNonExistent) {
-      await Helpers.writeFile(filePath, initialValue, config)
-    }
-    return new ConfigFile(PRIVATE_VAR, filePath, initialValue, config)
+    return new ConfigFile(PRIVATE_VAR, filePath, defaultValue || {}, config)
   }
 }
 
