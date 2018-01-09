@@ -1,99 +1,117 @@
 /* @flow */
 
-import FS from 'sb-fs'
+import $get from 'lodash/get'
+import $set from 'lodash/set'
+import $omit from 'lodash/omit'
+import $cloneDeep from 'lodash/cloneDeep'
+import chokidar from 'chokidar'
 import * as Helpers from './helpers'
-import * as ObjectPath from './object-path'
-import type { Config } from './types'
+import type { Path } from './types'
 
-const PRIVATE_VAR = {}
-class ConfigFile {
-  config: Config;
-  filePath: string;
-  initialValue: Object;
-  constructor(privateVar: Object, filePath: string, initialValue: Object, config: Config) {
-    if (privateVar !== PRIVATE_VAR) {
-      throw new Error('Invalid invocation of new ConfigFile() use ConfigFile.get() instead')
-    }
+async function getConfigFile(filePath: string, givenDefaultValue: ?Object = null, givenConfig: ?Object = null) {
+  const config = Helpers.fillConfig(givenConfig || {})
+  const defaultValue = givenDefaultValue || {}
+  const watcher = chokidar.watch(filePath)
 
-    this.config = config
-    this.filePath = filePath
-    this.initialValue = initialValue
+  let fileChanged = false
+  let queue = Promise.resolve()
+  let contents = await Helpers.readFile(filePath)
+
+  async function refreshFileAsync() {
+    if (!fileChanged) return
+    const newContents = await Helpers.readFile(filePath)
+    contents = newContents
+    fileChanged = false
   }
-  async get(key: string = '', defaultValue: any = null): any {
-    return this._get(key, defaultValue, await Helpers.readFile(this.filePath, this.initialValue, this.config))
+  function refreshFileSync() {
+    if (!fileChanged) return
+    const newContents = Helpers.readFileSync(filePath)
+    contents = newContents
+    fileChanged = false
   }
-  getSync(key: string = '', defaultValue: any = null): any {
-    return this._get(key, defaultValue, Helpers.readFileSync(this.filePath, this.initialValue, this.config))
-  }
-  _get(key: string, defaultValue: any, contents: Object): any {
-    try {
-      const value = ObjectPath.deepGet(contents, ObjectPath.split(key))
+
+  watcher.on('change', function() {
+    fileChanged = true
+    queue = queue.then(() => refreshFileAsync())
+  })
+
+  const configFile = {
+    async get(path: Path = null) {
+      await queue
+      let value
+      if (path === null) {
+        value = contents
+      } else {
+        value = $get(contents, path)
+      }
       if (typeof value === 'undefined') {
-        return defaultValue
+        value = $get(defaultValue, path)
       }
-      return value
-    } catch (error) {
-      return null
-    }
-  }
-  async set(key: string, value: any, strict: boolean = false) {
-    await Helpers.writeFile(this.filePath, this._set(key, value, strict, await Helpers.readFile(this.filePath, this.initialValue, this.config)), this.config)
-  }
-  setSync(key: string, value: any, strict: boolean = false) {
-    Helpers.writeFileSync(this.filePath, this._set(key, value, strict, Helpers.readFileSync(this.filePath, this.initialValue, this.config)), this.config)
-  }
-  _set(key: string, value: any, strict: boolean = false, contents: Object) {
-    const { childKey, parentKey } = ObjectPath.getKeys(key)
-    const parent = ObjectPath.deepNormalize(contents, ObjectPath.split(parentKey), strict)
-    if (Array.isArray(parent)) {
-      const index = parseInt(childKey, 10)
-      if (index !== index) {
-        throw new Error(`Invalid write of non-numeric key on Array at '${key}'`)
+      return $cloneDeep(value)
+    },
+    getSync(path: Path = null) {
+      refreshFileSync()
+      let value
+      if (path === null) {
+        value = contents
+      } else {
+        value = $get(contents, path)
       }
-      parent[index] = value
-    } else {
-      parent[childKey] = value
-    }
-    return contents
+      if (typeof value === 'undefined') {
+        value = $get(defaultValue, path)
+      }
+      return $cloneDeep(value)
+    },
+    async set(path: Path, value: any) {
+      await queue
+      let newContents
+      if (path === null) {
+        newContents = value
+      } else {
+        newContents = $set($cloneDeep(contents), path, value)
+      }
+      contents = newContents
+      await Helpers.writeFile(filePath, newContents, config)
+    },
+    setSync(path: Path, value: any) {
+      refreshFileSync()
+      let newContents
+      if (path === null) {
+        newContents = value
+      } else {
+        newContents = $set($cloneDeep(contents), path, value)
+      }
+      contents = newContents
+      Helpers.writeFileSync(filePath, newContents, config)
+    },
+    async delete(path: Path) {
+      await queue
+      let newContents
+      if (path === null) {
+        newContents = {}
+      } else {
+        newContents = $omit($cloneDeep(contents), path)
+      }
+      contents = newContents
+      await Helpers.writeFile(filePath, newContents, config)
+    },
+    deleteSync(path: Path) {
+      refreshFileSync()
+      let newContents
+      if (path === null) {
+        newContents = {}
+      } else {
+        newContents = $omit($cloneDeep(contents), path)
+      }
+      contents = newContents
+      Helpers.writeFileSync(filePath, newContents, config)
+    },
+    dispose() {
+      watcher.close()
+    },
   }
-  async delete(key: string, strict: boolean = false) {
-    await Helpers.writeFile(this.filePath, this._delete(key, strict, await Helpers.readFile(this.filePath, this.initialValue, this.config)), this.config)
-  }
-  deleteSync(key: string, strict: boolean = false) {
-    Helpers.writeFileSync(this.filePath, this._delete(key, strict, Helpers.readFileSync(this.filePath, this.initialValue, this.config)), this.config)
-  }
-  _delete(key: string, strict: boolean = false, contents: Object) {
-    const { childKey, parentKey } = ObjectPath.getKeys(key)
-    const parent = ObjectPath.deepNormalize(contents, ObjectPath.split(parentKey), strict)
-    delete parent[childKey]
-    return contents
-  }
-  async append(key: string, value: any, strict: boolean = false) {
-    await Helpers.writeFile(this.filePath, this._append(key, value, strict, await Helpers.readFile(this.filePath, this.initialValue, this.config)), this.config)
-  }
-  appendSync(key: string, value: any, strict: boolean = false) {
-    Helpers.writeFileSync(this.filePath, this._append(key, value, strict, Helpers.readFileSync(this.filePath, this.initialValue, this.config)), this.config)
-  }
-  _append(key: string, value: any, strict: boolean = false, contents: Object) {
-    const parent = ObjectPath.deepNormalize(contents, ObjectPath.split(key), strict)
-    if (!Array.isArray(parent)) {
-      const error = new Error(`Invalid write of '${key}' when it's not an Array`)
-      // $FlowIgnore: Custom prop
-      error.code = 'CONFIG_INVALID_ACCESS'
-      throw error
-    }
-    parent.push(value)
-    return contents
-  }
-  static async get(filePath: string, givenInitialValue: ?Object = {}, givenConfig: ?Object = {}) {
-    const config = Helpers.fillConfig(givenConfig || {})
-    const initialValue = givenInitialValue || {}
 
-    if (!await FS.exists(filePath) && config.createIfNonExistent) {
-      await Helpers.writeFile(filePath, initialValue, config)
-    }
-    return new ConfigFile(PRIVATE_VAR, filePath, initialValue, config)
-  }
+  return configFile
 }
 
-module.exports = ConfigFile
+export default getConfigFile

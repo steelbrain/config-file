@@ -3,5 +3,6 @@
 export type Config = {
   prettyPrint: boolean,
   atomicWrites: boolean,
-  createIfNonExistent: boolean,
 }
+
+export type Path = string | null

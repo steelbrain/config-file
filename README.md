@@ -3,7 +3,7 @@ sb-config-file
 
 [![Greenkeeper badge](https://badges.greenkeeper.io/steelbrain/config-file.svg)](https://greenkeeper.io/)
 
-sb-config-file is a Node.js module to help you manage your JSON configuration files without worrying about concurrency issues and double writes
+sb-config-file is a Node.js module to help you manage your JSON configuration files without worrying about concurrency issues or double writes. It uses and therefore supports the [`lodash.get/lodash.set`](https://lodash.com/docs/4.17.4#get) way of accessing properties
 
 ## API
 
@@ -11,7 +11,6 @@ sb-config-file is a Node.js module to help you manage your JSON configuration fi
 type Options = {
   prettyPrint: boolean = true,
   atomicWrites: boolean = true,
-  createIfNonExistent: boolean = false,
 }
 
 export default class ConfigFile {
@@ -19,8 +18,6 @@ export default class ConfigFile {
   getSync(dotSeparatedKey: string, defaultValue = null): any
   set(dotSeparatedKey: string, value, strict = false): Promise<void>
   setSync(dotSeparatedKey: string, value, strict = false): void
-  append(dotSeparatedKey: string, value, strict = false): Promise<void>
-  appendSync(dotSeparatedKey: string, value, strict = false): void
   delete(dotSeparatedKey: string, strict = false): Promise<void>
   deleteSync(dotSeparatedKey: string, strict = false): void
 
@@ -32,9 +29,9 @@ export default class ConfigFile {
 
 ```js
 const Path = require('path')
-const ConfigFile = require('sb-config-file')
+const getConfigFile = require('sb-config-file')
 
-ConfigFile.get(Path.join(__dirname, 'config.json')).then(function(configFile) {
+getConfigFile(Path.join(__dirname, 'config.json')).then(function(configFile) {
   configFile.set('database.host', 'localhost')
   configFile.set('database.user', 'steelbrain')
 
@@ -46,22 +43,13 @@ ConfigFile.get(Path.join(__dirname, 'config.json')).then(function(configFile) {
   console.log(configFile.get('database'))      // { user: 'steelbrain' }
 
   configFile.set('someArray', [1, 2, 3])
-  console.log(configFile.get('someArray.0')) // 1
-  console.log(configFile.get('someArray.1')) // 2
-  console.log(configFile.get('someArray.2')) // 3
-
   configFile.set('someArray.5', 50)
   console.log(configFile.get('someArray.0')) // 1
   console.log(configFile.get('someArray.1')) // 2
   console.log(configFile.get('someArray.2')) // 3
-  console.log(configFile.get('someArray.3')) // null
-  console.log(configFile.get('someArray.4')) // null
+  console.log(configFile.get('someArray.3')) // undefined
+  console.log(configFile.get('someArray.4')) // undefined
   console.log(configFile.get('someArray.5')) // 50
-
-  configFile.set('newArray', [1, 2, 3])
-  console.log(configFile.get('newArray')) // [1, 2, 3]
-  configFile.append('newArray', 20)
-  console.log(configFile.get('newArray')) // [1, 2, 3, 20]
 })
 ```
 

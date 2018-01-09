@@ -14,14 +14,13 @@ export function fillConfig(given: Object): Config {
   if (typeof given.atomicWrites !== 'undefined') {
     config.atomicWrites = !!given.atomicWrites
   } else config.atomicWrites = true
-  config.createIfNonExistent = !!given.createIfNonExistent
 
   return config
 }
 
 export function writeFile(filePath: string, contents: Object, config: Config): Promise<void> {
-  const stringified = JSON.stringify(contents, null, config.prettyPrint ? 2 : 0) + '\n'
-  if (config.atomic) {
+  const stringified = `${JSON.stringify(contents, null, config.prettyPrint ? 2 : 0)}\n`
+  if (config.atomicWrites) {
     return new Promise(function(resolve, reject) {
       atomicWrite(filePath, stringified, function(err) {
         if (err) reject()
@@ -33,43 +32,43 @@ export function writeFile(filePath: string, contents: Object, config: Config): P
 }
 
 export function writeFileSync(filePath: string, contents: Object, config: Config): void {
-  const stringified = JSON.stringify(contents, null, config.prettyPrint ? 2 : 0) + '\n'
-  if (config.atomic) {
+  const stringified = `${JSON.stringify(contents, null, config.prettyPrint ? 2 : 0)}\n`
+  if (config.atomicWrites) {
     atomicWrite.sync(filePath, stringified)
   } else {
     FS.writeFileSync(filePath, stringified)
   }
 }
 
-export async function readFile(filePath: string, initialValue: Object, config: Config): Promise<Object> {
+export async function readFile(filePath: string): Promise<Object> {
   let contents
   try {
     contents = stripBom(await FS.readFile(filePath, 'utf8'))
   } catch (error) {
-    if (error.code === 'ENOENT' && !config.createIfNonExistent) {
-      return Object.assign({}, initialValue)
+    if (error.code === 'ENOENT') {
+      return {}
     }
     throw error
   }
   try {
-    return Object.assign({}, initialValue, JSON.parse(contents))
+    return JSON.parse(contents)
   } catch (_) {
     throw new Error(`Invalid JSON found at '${filePath}'`)
   }
 }
 
-export function readFileSync(filePath: string, initialValue: Object, config: Config): Object {
+export function readFileSync(filePath: string): Object {
   let contents
   try {
     contents = stripBom(FS.readFileSync(filePath, 'utf8'))
   } catch (error) {
-    if (error.code === 'ENOENT' && !config.createIfNonExistent) {
-      return Object.assign({}, initialValue)
+    if (error.code === 'ENOENT') {
+      return {}
     }
     throw error
   }
   try {
-    return Object.assign({}, initialValue, JSON.parse(contents))
+    return JSON.parse(contents)
   } catch (_) {
     throw new Error(`Invalid JSON found at '${filePath}'`)
   }

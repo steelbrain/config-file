@@ -1,3 +1,9 @@
+### 4.0.0
+
+- Remove `append` and `appendSync`
+- Remove `createIfNonExistent` (we now NEVER crash on read if the file does not exist)
+- Rewrote to only re-read the file when it changes on file-system (by using FS watching)
+
 ### 3.0.3
 
 - Upgrade sb-fs to v3 to remove a lot of unwanted deps, making the package more lightweight
