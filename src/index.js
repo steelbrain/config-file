@@ -34,7 +34,7 @@ async function getConfigFile(filePath: string, givenDefaultValue: ?Object = null
   })
 
   const configFile = {
-    async get(path) {
+    async get(path: string) {
       await queue
       let value = $get(contents, path)
       if (typeof value === 'undefined') {
@@ -42,7 +42,7 @@ async function getConfigFile(filePath: string, givenDefaultValue: ?Object = null
       }
       return value
     },
-    getSync(path) {
+    getSync(path: string) {
       refreshFileSync()
       let value = $get(contents, path)
       if (typeof value === 'undefined') {
@@ -50,22 +50,22 @@ async function getConfigFile(filePath: string, givenDefaultValue: ?Object = null
       }
       return value
     },
-    async set(path, value) {
+    async set(path: string, value: any) {
       await queue
       const newContents = $set($cloneDeep(contents), path, value)
       contents = newContents
       await Helpers.writeFile(filePath, newContents, config)
     },
-    setSync(path, value) {
+    setSync(path: string, value: any) {
       refreshFileSync()
       const newContents = $set($cloneDeep(contents), path, value)
       contents = newContents
       Helpers.writeFileSync(filePath, newContents, config)
     },
-    async delete(path) {
+    async delete(path: string) {
       await configFile.set(path, undefined)
     },
-    deleteSync(path) {
+    deleteSync(path: string) {
       configFile.setSync(path, undefined)
     },
     dispose() {
