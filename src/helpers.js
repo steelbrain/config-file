@@ -19,7 +19,7 @@ export function fillConfig(given: Object): Config {
 }
 
 export function writeFile(filePath: string, contents: Object, config: Config): Promise<void> {
-  const stringified = JSON.stringify(contents, null, config.prettyPrint ? 2 : 0) + '\n'
+  const stringified = `${JSON.stringify(contents, null, config.prettyPrint ? 2 : 0)}\n`
   if (config.atomic) {
     return new Promise(function(resolve, reject) {
       atomicWrite(filePath, stringified, function(err) {
@@ -32,7 +32,7 @@ export function writeFile(filePath: string, contents: Object, config: Config): P
 }
 
 export function writeFileSync(filePath: string, contents: Object, config: Config): void {
-  const stringified = JSON.stringify(contents, null, config.prettyPrint ? 2 : 0) + '\n'
+  const stringified = `${JSON.stringify(contents, null, config.prettyPrint ? 2 : 0)}\n`
   if (config.atomic) {
     atomicWrite.sync(filePath, stringified)
   } else {
