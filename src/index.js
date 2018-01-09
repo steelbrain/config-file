@@ -5,6 +5,7 @@ import $set from 'lodash/set'
 import $cloneDeep from 'lodash/cloneDeep'
 import chokidar from 'chokidar'
 import * as Helpers from './helpers'
+import type { Path } from './types'
 
 async function getConfigFile(filePath: string, givenDefaultValue: ?Object = null, givenConfig: ?Object = null) {
   const config = Helpers.fillConfig(givenConfig || {})
@@ -34,38 +35,58 @@ async function getConfigFile(filePath: string, givenDefaultValue: ?Object = null
   })
 
   const configFile = {
-    async get(path: string) {
+    async get(path: Path = null) {
       await queue
-      let value = $get(contents, path)
+      let value
+      if (path === null) {
+        value = contents
+      } else {
+        value = $get(contents, path)
+      }
       if (typeof value === 'undefined') {
         value = $get(defaultValue, path)
       }
-      return value
+      return $cloneDeep(value)
     },
-    getSync(path: string) {
+    getSync(path: Path = null) {
       refreshFileSync()
-      let value = $get(contents, path)
+      let value
+      if (path === null) {
+        value = contents
+      } else {
+        value = $get(contents, path)
+      }
       if (typeof value === 'undefined') {
         value = $get(defaultValue, path)
       }
-      return value
+      return $cloneDeep(value)
     },
-    async set(path: string, value: any) {
+    async set(path: Path, value: any) {
       await queue
-      const newContents = $set($cloneDeep(contents), path, value)
+      let newContents
+      if (path === null) {
+        newContents = value
+      } else {
+        newContents = $set($cloneDeep(contents), path, value)
+      }
       contents = newContents
       await Helpers.writeFile(filePath, newContents, config)
     },
-    setSync(path: string, value: any) {
+    setSync(path: Path, value: any) {
       refreshFileSync()
-      const newContents = $set($cloneDeep(contents), path, value)
+      let newContents
+      if (path === null) {
+        newContents = value
+      } else {
+        newContents = $set($cloneDeep(contents), path, value)
+      }
       contents = newContents
       Helpers.writeFileSync(filePath, newContents, config)
     },
-    async delete(path: string) {
+    async delete(path: Path) {
       await configFile.set(path, undefined)
     },
-    deleteSync(path: string) {
+    deleteSync(path: Path) {
       configFile.setSync(path, undefined)
     },
     dispose() {
