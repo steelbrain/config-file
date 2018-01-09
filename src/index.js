@@ -2,6 +2,7 @@
 
 import $get from 'lodash/get'
 import $set from 'lodash/set'
+import $omit from 'lodash/omit'
 import $cloneDeep from 'lodash/cloneDeep'
 import chokidar from 'chokidar'
 import * as Helpers from './helpers'
@@ -84,10 +85,26 @@ async function getConfigFile(filePath: string, givenDefaultValue: ?Object = null
       Helpers.writeFileSync(filePath, newContents, config)
     },
     async delete(path: Path) {
-      await configFile.set(path, undefined)
+      await queue
+      let newContents
+      if (path === null) {
+        newContents = {}
+      } else {
+        newContents = $omit($cloneDeep(contents), path)
+      }
+      contents = newContents
+      await Helpers.writeFile(filePath, newContents, config)
     },
     deleteSync(path: Path) {
-      configFile.setSync(path, undefined)
+      refreshFileSync()
+      let newContents
+      if (path === null) {
+        newContents = {}
+      } else {
+        newContents = $omit($cloneDeep(contents), path)
+      }
+      contents = newContents
+      Helpers.writeFileSync(filePath, newContents, config)
     },
     dispose() {
       watcher.close()
