@@ -1,7 +1,7 @@
 sb-config-file
 =========
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/steelbrain/config-file.svg)](https://greenkeeper.io/)
+#### Note: This package has been depreciated in favor of [`lowdb`](https://www.npmjs.com/package/lowdb)
 
 sb-config-file is a Node.js module to help you manage your JSON configuration files without worrying about concurrency issues or double writes. It uses and therefore supports the [`lodash.get/lodash.set`](https://lodash.com/docs/4.17.4#get) way of accessing properties
 
